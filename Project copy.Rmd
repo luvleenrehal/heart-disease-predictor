@@ -1,0 +1,259 @@
+---
+title: "Untitled"
+author: "Luvleen Rehal"
+date: "14/06/2023"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r reading the data file}
+disease = read.csv("heartdata.csv", header = T)
+```
+
+```{r cleaning the data}
+head(disease[,-(1:2)])
+num_samples <- nrow(disease)
+print(num_samples)
+```
+
+```{r removing predictors not needed}
+sdisease = disease[,-(1:2)]
+pairs(sdisease)
+
+adisease_full = disease[,c("age", "sex", "chest.pain.type", "resting.blood.pressure", "serum.cholestoral", "fasting.blood.sugar", "max.heart.rate", "oldpeak", "ST.segment" , "major.vessels" , "thal", "exercise.induced.angina", "heart.disease")]
+```
+
+```{r splitting the data into training set, adisease, and testing set, adisease.testing}
+#make this example reproducible
+set.seed(1)
+
+#split the data
+sample <- sample(c(TRUE, FALSE), nrow(adisease_full), replace=TRUE, prob=c(0.7,0.3))
+adisease  <- adisease_full[sample, ]
+adisease.test   <- adisease_full[!sample, ]
+
+# 191 observations in training set
+# 79 observations in testing set
+
+pairs(adisease)
+
+par(mfrow=c(2,3))
+for(i in c("age", "sex", "chest.pain.type", "resting.blood.pressure", "serum.cholestoral", "fasting.blood.sugar", "max.heart.rate", "oldpeak", "ST.segment" , "major.vessels" , "thal", "exercise.induced.angina", "heart.disease")){
+  boxplot(adisease[,i], main=paste0("Boxplot of ", i), xlab=i
+          , horizontal=T)
+}
+# printing the training and testing data set
+print(adisease)
+print(adisease.test)
+```
+
+```{r bar plot for chest pain type and heart disease}
+frequency <- table(adisease$chest.pain.type, adisease$heart.disease)
+
+# Create the bar plot
+barplot(frequency, beside = TRUE, legend.text = TRUE,
+        main = "Bar Plot of Chest Pain Type and Heart Disease",
+        xlab = "Chest Pain Type", ylab = "Frequency",
+        col = c("blue", "red", "pink", "yellow"))
+```
+
+```{r creating model 1 which includes all predictors}
+mod1 = lm(heart.disease~chest.pain.type+age+sex+resting.blood.pressure+serum.cholestoral+fasting.blood.sugar+max.heart.rate+oldpeak+ST.segment+major.vessels, adisease)
+
+summary(mod1)
+plot(mod1)
+plot(mod1$fitted.values, mod1$residuals)
+
+AIC(mod1)
+BIC(mod1)
+```
+
+```{r creating model 2 which omits predictor blood sugar}
+mod2 = lm(heart.disease~chest.pain.type+age+sex+resting.blood.pressure+serum.cholestoral+max.heart.rate+oldpeak+ST.segment+major.vessels, adisease)
+
+summary(mod2)
+plot(mod2)
+plot(mod2$fitted.values, mod2$residuals)
+
+AIC(mod2)
+BIC(mod2)
+```
+
+```{r creating model 3 which omits predictor age}
+mod3 = lm(heart.disease~chest.pain.type+sex+resting.blood.pressure+serum.cholestoral+max.heart.rate+oldpeak+ST.segment+major.vessels, adisease)
+
+summary(mod3)
+plot(mod3)
+plot(mod3$fitted.values, mod3$residuals)
+
+AIC(mod3)
+BIC(mod3)
+```
+
+```{r creating model 4 which omits predictor blood pressure}
+mod4 = lm(heart.disease~chest.pain.type+sex+serum.cholestoral+max.heart.rate+oldpeak+ST.segment+major.vessels, adisease)
+
+summary(mod4)
+plot(mod4)
+plot(mod4$fitted.values, mod4$residuals)
+
+AIC(mod4)
+BIC(mod4)
+```
+
+```{r creating model 5 which omits predictor st segment}
+mod5 = lm(heart.disease~chest.pain.type+sex+serum.cholestoral+max.heart.rate+oldpeak+major.vessels, adisease)
+
+summary(mod5)
+plot(mod5)
+plot(mod5$fitted.values, mod5$residuals)
+
+AIC(mod5)
+BIC(mod5)
+```
+
+```{r creating model 6 which omits predictor cholestrol}
+mod6 = lm(heart.disease~chest.pain.type+sex+max.heart.rate+oldpeak+major.vessels, adisease)
+
+summary(mod6)
+plot(mod6)
+plot(mod6$fitted.values, mod6$residuals)
+
+AIC(mod6)
+BIC(mod6)
+```
+
+```{r creating model 7 which omits predictor max heart rate}
+mod7 = lm(heart.disease~chest.pain.type+sex+oldpeak+major.vessels, adisease)
+
+summary(mod7)
+plot(mod7)
+plot(mod7$fitted.values, mod7$residuals)
+
+AIC(mod7)
+BIC(mod7)
+```
+
+```{r creating model 8 which omits predictor sex}
+mod8 = lm(heart.disease~chest.pain.type+oldpeak+major.vessels, adisease)
+
+summary(mod8)
+plot(mod8)
+plot(mod8$fitted.values, mod8$residuals)
+
+AIC(mod8)
+BIC(mod8)
+```
+
+```{r creating model 9 which omits predictor major vessels}
+mod9 = lm(heart.disease~chest.pain.type+oldpeak, adisease)
+
+summary(mod9)
+plot(mod9)
+plot(mod9$fitted.values, mod9$residuals)
+
+AIC(mod9)
+BIC(mod9)
+```
+
+```{r creating model 10 which omits predictor oldpeak}
+mod10 = lm(heart.disease~chest.pain.type, adisease)
+
+summary(mod10)
+plot(mod10)
+plot(mod10$fitted.values, mod10$residuals)
+
+AIC(mod10)
+BIC(mod10)
+```
+
+```{r graph with all models}
+
+rsquared1 <- summary(mod1)$r.squared
+rsquared2 <- summary(mod2)$r.squared
+rsquared3 <- summary(mod3)$r.squared
+rsquared4 <- summary(mod4)$r.squared
+rsquared5 <- summary(mod5)$r.squared
+rsquared6 <- summary(mod6)$r.squared
+rsquared7 <- summary(mod7)$r.squared
+rsquared8 <- summary(mod8)$r.squared
+rsquared9 <- summary(mod9)$r.squared
+rsquared10 <- summary(mod10)$r.squared
+
+num_coefficients1 <- length(coefficients(mod1))
+num_coefficients2 <- length(coefficients(mod2))
+num_coefficients3 <- length(coefficients(mod3))
+num_coefficients4 <- length(coefficients(mod4))
+num_coefficients5 <- length(coefficients(mod5))
+num_coefficients6 <- length(coefficients(mod6))
+num_coefficients7 <- length(coefficients(mod7))
+num_coefficients8 <- length(coefficients(mod8))
+num_coefficients9 <- length(coefficients(mod9))
+num_coefficients10 <- length(coefficients(mod10))
+
+num_coefficients <- c(num_coefficients1, num_coefficients2, num_coefficients3, num_coefficients4, num_coefficients5, num_coefficients6, num_coefficients7, num_coefficients8, num_coefficients9, num_coefficients10)
+
+rsquared_data <- data.frame(Model = c("Model 1", "Model 2", "Model 3", "Model 4", "Model 5", "Model 6", "Model 7", "Model 8", "Model 9", "Model 10"),
+                            R_squared = c(rsquared1, rsquared2, rsquared3, rsquared4, rsquared5, rsquared6, rsquared7, rsquared8, rsquared9, rsquared10))
+
+barplot(rsquared_data$R_squared, names.arg = rsquared_data$Model,
+        main = "Bar Graph of R-squared by Model",
+        ylab = "R-squared", xlab = "Model")
+```
+
+```{r calculating R^2}
+predictions <- predict(mod10, newdata = adisease.test)
+actual_values <- adisease.test$heart.disease
+ss_residuals <- sum((actual_values - predictions)^2)
+ss_total <- sum((actual_values - mean(actual_values))^2)
+r_squared <- 1 - (ss_residuals / ss_total)
+print(r_squared)
+
+```
+
+```{r calculating mean square error }
+predictions <- predict(mod10, newdata = adisease.test)
+residuals <- adisease.test$heart.disease - predictions
+mse <- mean(residuals^2)
+print(predictions)
+print(mse)
+```
+
+```{r calculating and printing all AIC and BIC values}
+a1 = AIC(mod1)
+a2 = AIC(mod2)
+a3 = AIC(mod3)
+a4 = AIC(mod4)
+a5 = AIC(mod5)
+a6 = AIC(mod6)
+a7 = AIC(mod7)
+a8 = AIC(mod8)
+a9 = AIC(mod9)
+a10 = AIC(mod10)
+
+b1 = BIC(mod1)
+b2 = BIC(mod2)
+b3 = BIC(mod3)
+b4 = BIC(mod4)
+b5 = BIC(mod5)
+b6 = BIC(mod6)
+b7 = BIC(mod7)
+b8 = BIC(mod8)
+b9 = BIC(mod9)
+b10 = BIC(mod10)
+
+aic_values <- c(a1,a2, a3, a4, a5, a6, a7, a8, a9, a10)
+
+bic_values <- c(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10)
+
+results <- data.frame(AIC = aic_values, BIC = bic_values)
+print(results)
+
+```
